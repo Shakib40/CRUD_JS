@@ -1,0 +1,248 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            background-color: black;
+        }
+        .section1{
+            width: 80%;
+            height: auto;
+            margin: auto;
+            border: 1px solid black;
+            background-color: white;
+            border-radius: 5px;
+        }
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+        
+        td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+          width: 30%;
+        }
+        
+        tr:nth-child(even) {
+          background-color: #dddddd;
+        }
+        .section2{
+            text-align: center;
+            border: 1px solid black;
+            width: 80%;
+            margin: auto;
+            margin-top: 10px;
+            padding-top: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            background-color: white;
+            border-radius: 5px;
+        }
+        .section2 input{
+            margin: 10px;
+        }
+        button {
+            border: none;
+            padding: 16px 100px;
+            letter-spacing: 2px;
+        }
+        button:hover{
+            background-color: greenyellow;
+        }
+        input:placeholder-shown{
+            padding: 16px 100px 16px 10px;
+            font-size: 20px;
+        }
+        input{
+            padding: 16px 100px 16px 10px;
+            font-size: 20px;
+        }
+    </style>
+
+</head>
+<body>
+
+<section class="section1"> 
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Price</th>
+    </tr>
+</table>
+<table id="viewData"></table>   
+</section>
+
+<section class="section2">
+    <h1> Add Products</h1>
+    <input type="text" id="id" placeholder="id"><br>
+    <input type="text" id="name" placeholder="Name"><br>
+    <input type="number" id="price" placeholder="Price"><br>
+    <button onclick="addProducts()">Add products</button>
+</section>
+
+<section class="section2">
+    <h1>Delete Products</h1>
+    <input type="text" id="product_id" placeholder="ID"><br>
+    <button onclick="deleteProducts()">Delete products</button>
+</section>
+
+<section class="section2">
+    <h1>Fetch Products by Id</h1>
+    <input type="text" id="search_id" placeholder="ID"><br>
+    <button onclick="searchProducts()">Get Element By Id</button>
+    
+    <div id="searchproducts"></div>
+</section>
+
+</body>
+</html>
+<script>
+
+let id_div = document.getElementById('searchproducts');
+
+async function searchProducts(){
+    let search_id = document.getElementById('search_id').value;
+
+    try{
+    let respose = await fetch(`http://localhost:5000/api/products/${search_id}`,{
+        method:"GET",
+        headers:{
+            "Content-Type":"application/json",
+        },
+    });
+    let data =await respose.json();
+    console.log("data" , data);
+    showIDvalue(data);
+    }catch(e){
+        console.log("e", e);
+    }
+}
+
+function showIDvalue(data){
+  
+   id_div.innerHTML = null;
+   const { id, name , price} = data;  
+   let div = document.createElement('div');
+
+   let id1 = document.createElement("INPUT");
+   id1.setAttribute("type", "text");
+   id1.setAttribute("value", id);
+   id1.setAttribute("id","id1");
+
+   
+   let name1 = document.createElement("INPUT");
+   name1.setAttribute("type", "text");
+   name1.setAttribute("value", name);
+   name1.setAttribute("id","name1");
+
+   let price1 = document.createElement("INPUT");
+   price1.setAttribute("type", "text");
+   price1.setAttribute("value", price);
+   price1.setAttribute("id","price1");
+
+   let btn = document.createElement("BUTTON");
+   btn.innerHTML = "Update Products"; 
+   
+   div.append(id1, name1 , price1 , btn);
+
+   id_div.append(div);
+
+   btn.onclick = function changeContent(){
+       update(id);
+   }
+}
+
+async function update(idd){
+    let data = {
+    id:document.getElementById('id1').value,
+    name:document.getElementById('name1').value,
+    price:document.getElementById('price1').value,
+    };
+    try{
+    let respose = await fetch(`http://localhost:5000/api/products/${idd}` , {
+        method: 'PUT',
+        body:JSON.stringify(data),
+        headers:{
+            "Content-Type":"application/json",
+        },
+    });
+
+    let d =await respose.json();
+    console.log("update" , d);
+    }
+    catch(e){
+        console.log("e" , e);
+    }
+}
+
+
+let data_div = document.getElementById('viewData');
+Data();
+async function Data(){
+    let respose = await fetch('http://localhost:5000/api/products');
+    let data = await respose.json();
+    console.log("Data" , data);
+    displayData(data);
+}
+
+function displayData(array){
+    data_div.innerHTML = null;
+    array.forEach( element => {
+        let { id , name , price} = element;
+        let inside_div = document.createElement('tr');
+
+        inside_div.innerHTML = `
+                    <td>${id}</td>
+                    <td>${name}</td>
+                    <td>${price}</td>`;
+            data_div.appendChild(inside_div);
+    });
+}
+
+async function addProducts(){
+    let data = {
+    id:document.getElementById('id').value,
+    name:document.getElementById('name').value,
+    price:document.getElementById('price').value,
+    };
+    try{
+    let respose = await fetch('http://localhost:5000/api/products' , {
+        method: 'POST',
+        body:JSON.stringify(data),
+        headers:{
+            "Content-Type":"application/json",
+        },
+    });
+
+    let d =await respose.json();
+    console.log("d" , d);
+    }
+    catch(e){
+        console.log("e" , e);
+    }
+}
+
+async function deleteProducts(){   
+    let id = document.getElementById('product_id').value;
+    try{
+    let respose = await fetch(`http://localhost:5000/api/products/${id}`,{
+        method:"DELETE",
+        headers:{
+            "Content-Type":"application/json",
+        },
+    });
+    let d =await respose.json();
+    console.log("d" , d);
+    }catch(e){
+        console.log("e", e);
+    }
+}
+
+</script>
